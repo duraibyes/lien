@@ -1901,3 +1901,41 @@ Message: Target class [App\Http\Kernel] does not exist.
 #9 /home/pssurs/dragocode/lien/server.php(22): require_once('/home/pssurs/dr...')
 #10 {main}
 ================================================================================
+Date: 2025-12-23 16:12:42
+Host: 127.0.0.1
+Type: PDOException
+File: {vine}\vine\db.php
+Line: 227
+Message: SQLSTATE[HY000] [1045] Access denied for user 'lienmana_session'@'localhost' (using password: YES)
+--
+#0 C:\xampp\htdocs\lien\vine\include\system\vine\db.php(227): PDO->__construct('mysql:dbname=li...', 'lienmana_sessio...', 'azsammartinruse...')
+#1 C:\xampp\htdocs\lien\vine\include\system\vine\db.php(879): Vine_Db->connect()
+#2 C:\xampp\htdocs\lien\vine\include\system\vine\session.php(1001): Vine_Db->query('CREATE TABLE IF...')
+#3 C:\xampp\htdocs\lien\vine\include\system\vine\session.php(207): Vine_Session->_createTable()
+#4 C:\xampp\htdocs\lien\vine\include\system\vine\session.php(291): Vine_Session->__construct(Array)
+#5 C:\xampp\htdocs\lien\vine\include\system\registry.php(65): Vine_Session::getInstance()
+#6 C:\xampp\htdocs\lien\vine\include\system\vine.php(701): require('C:\\xampp\\htdocs...')
+#7 C:\xampp\htdocs\lien\vine\include\system\vine.php(241): Vine::loadRegistry(Array, 'C:\\xampp\\htdocs...')
+#8 C:\xampp\htdocs\lien\vine\include\bootstrap.php(61): Vine::start('C:\\xampp\\htdocs...', 'C:\\xampp\\htdocs...')
+#9 C:\xampp\htdocs\lien\server.php(20): require_once('C:\\xampp\\htdocs...')
+#10 {main}
+================================================================================
+Date: 2025-12-23 16:12:42
+Host: 127.0.0.1
+Type: PDOException
+File: {vine}\vine\db.php
+Line: 227
+Message: SQLSTATE[HY000] [1045] Access denied for user 'lienmana_session'@'localhost' (using password: YES)
+--
+#0 C:\xampp\htdocs\lien\vine\include\system\vine\db.php(227): PDO->__construct('mysql:dbname=li...', 'lienmana_sessio...', 'azsammartinruse...')
+#1 C:\xampp\htdocs\lien\vine\include\system\vine\db.php(879): Vine_Db->connect()
+#2 C:\xampp\htdocs\lien\vine\include\system\vine\session.php(1001): Vine_Db->query('CREATE TABLE IF...')
+#3 C:\xampp\htdocs\lien\vine\include\system\vine\session.php(207): Vine_Session->_createTable()
+#4 C:\xampp\htdocs\lien\vine\include\system\vine\session.php(291): Vine_Session->__construct(Array)
+#5 C:\xampp\htdocs\lien\vine\include\system\registry.php(65): Vine_Session::getInstance()
+#6 C:\xampp\htdocs\lien\vine\include\system\vine.php(701): require('C:\\xampp\\htdocs...')
+#7 C:\xampp\htdocs\lien\vine\include\system\vine.php(241): Vine::loadRegistry(Array, 'C:\\xampp\\htdocs...')
+#8 C:\xampp\htdocs\lien\vine\include\bootstrap.php(61): Vine::start('C:\\xampp\\htdocs...', 'C:\\xampp\\htdocs...')
+#9 C:\xampp\htdocs\lien\server.php(20): require_once('C:\\xampp\\htdocs...')
+#10 {main}
+================================================================================
