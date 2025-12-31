@@ -1157,8 +1157,9 @@ class ProjectController extends Controller
             if ($project_id > 0 || $project_id != '') {
                 $project = ProjectDetail::find($project_id);
                 $remedy = Remedy::where('state_id', $project->state_id)
-                    ->where('project_type_id', $project->project_type_id);
+                ->where('project_type_id', $project->project_type_id);
                 $tasks = ProjectTask::where('project_id', $project_id)->get();
+          
                 foreach ($tasks as $key=>$value) {
                     if(isset($value->job_file_id) && !empty($value->job_file_id)) {
                         $JobInfoFiles = JobInfoFiles::where('id',$value->job_file_id)->first();
@@ -1192,9 +1193,10 @@ class ProjectController extends Controller
                 } elseif ($answer == 'No' || $answer == 'Residential') {
                     $flag = 2;
                 }
+                
                 if ($flag == 0) {
-                    $tier = TierTable::where('role_id', $role_id->pluck('role_id'))->where('customer_id', $role_id->pluck('customer_id'));
-                    $tierRem = TierRemedyStep::where('tier_id', $tier->pluck('id'));
+                    $tier = TierTable::whereIn('role_id', $role_id->pluck('role_id'))->whereIn('customer_id', $role_id->pluck('customer_id'));
+                    $tierRem = TierRemedyStep::whereIn('tier_id', $tier->pluck('id'));
                     $deadline1 = RemedyStep::where('status', '1')->whereIn('remedy_date_id', $remedyDate->pluck('id'))
                         ->whereIn('remedy_id', $remedy->pluck('id'));
                     $deadline = $deadline1->whereIn('id', $tierRem->pluck('remedy_step_id'))->get();
@@ -1239,7 +1241,6 @@ class ProjectController extends Controller
                     $emails = ProjectEmail::select('project_emails')
                         ->where('project_id', $project->id)->get();
                 }
-                // dd($deadline);
                 $daysRemain = [];
                 $remedyNames = [];
 
@@ -2726,6 +2727,7 @@ class ProjectController extends Controller
                 $emails = ProjectEmail::select('project_emails')
                     ->where('project_id', $project->id)->get();
             }
+            dd($deadline);
             if (count($deadline) > 0) {
                 foreach ($deadline as $key => $value) {
                     $years = $value->years;
@@ -3114,16 +3116,16 @@ class ProjectController extends Controller
             $flag = 2;
         }
         if ($flag == 0) {
-            $tier = TierTable::where('role_id', $role_id->pluck('role_id'))->where('customer_id', $role_id->pluck('customer_id'));
-            $tierRem = TierRemedyStep::where('tier_id', $tier->pluck('id'));
+            $tier = TierTable::whereIn('role_id', $role_id->pluck('role_id'))->whereIN('customer_id', $role_id->pluck('customer_id'));
+            $tierRem = TierRemedyStep::whereIn('tier_id', $tier->pluck('id'));
             $deadline1 = RemedyStep::where('status', '1')->whereIn('remedy_date_id', $remedyDate->pluck('id'))
                 ->whereIn('remedy_id', $remedy->pluck('id'));
             $deadline = $deadline1->whereIn('id', $tierRem->pluck('remedy_step_id'))->get();
             $emails = ProjectEmail::select('project_emails')
                 ->where('project_id', $project->id)->get();
         } elseif ($flag == 1) {
-            $tier = TierTable::where('role_id', $role_id->pluck('role_id'))->where('customer_id', $role_id->pluck('customer_id'));
-            $tierRem = TierRemedyStep::where('tier_id', $tier->pluck('id'));
+            $tier = TierTable::whereIn('role_id', $role_id->pluck('role_id'))->whereIn('customer_id', $role_id->pluck('customer_id'));
+            $tierRem = TierRemedyStep::whereIn('tier_id', $tier->pluck('id'));
             if ($answer == 'Yes') {
                 $tierRem1 = $tierRem->where(function ($query) {
                     $query->where('answer1', 'Yes')
@@ -3141,7 +3143,7 @@ class ProjectController extends Controller
             $emails = ProjectEmail::select('project_emails')
                 ->where('project_id', $project->id)->get();
         } elseif ($flag == 2) {
-            $tier = TierTable::where('role_id', $role_id->pluck('role_id'))->where('customer_id', $role_id->pluck('customer_id'));
+            $tier = TierTable::whereIN('role_id', $role_id->pluck('role_id'))->whereIn('customer_id', $role_id->pluck('customer_id'));
             $tierRem = TierRemedyStep::where('tier_id', $tier->pluck('id'));
             if ($answer == 'No') {
                 $tierRem1 = $tierRem->where(function ($query) {
@@ -3161,7 +3163,7 @@ class ProjectController extends Controller
             $emails = ProjectEmail::select('project_emails')
                 ->where('project_id', $project->id)->get();
         }
-//         dd($deadline);
+        // dd($deadline);
         $daysRemain = [];
         foreach ($deadline as $key => $value) {
             $years = $value->years;

@@ -741,6 +741,7 @@ class MemberController extends Controller
     public function addMember(Request $request)
     {
         DB::beginTransaction();
+        info($request->all());
         try {
             Stripe::setApiKey(config('services.stripe.secret'));
             $email = User::where('email', $request->email)->count();

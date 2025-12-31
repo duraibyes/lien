@@ -46,7 +46,7 @@
                                                 <div class="col-md-3"><label>Company</label></div>
                                                 <div class="col-md-9 field">
                                                     <input disabled type="text" name="company_name" id="company_name"
-                                                        value="{{ $user->details ? $user->details->getCompany->company : '' }}">
+                                                        value="{{ $user->details ? $user?->details?->getCompany?->company : '' }}">
                                                 </div>
                                             </div>
                                             <div class="row">

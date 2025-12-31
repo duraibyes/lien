@@ -1205,8 +1205,12 @@ class VineTransferController extends Controller
 
         $projectId = $request->get('project_id');
 
+        if (!$projectId) {
+            return false;
+        }
+
         $project = ProjectDetail::find($projectId);
-        $remedy = Remedy::where('state_id', $project->state_id)
+        $remedy = Remedy::where('state_id', $project->state_id ??  null)
             ->where('project_type_id', $project->project_type_id);
         $remedySteps = RemedyStep::whereIn('remedy_id', $remedy->pluck('id'));
         $tiers = TierTable::where('role_id', $project->role_id)

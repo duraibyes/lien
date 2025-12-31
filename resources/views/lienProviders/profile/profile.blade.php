@@ -185,7 +185,7 @@
                                                                         <td>
                                                                             <div class="pad15 current_image">
                                                                                 @if(!is_null($user->details) && $user->details->image != '')
-                                                                                    <img src="{{ env('ASSET_URL') }}/image_logo/{{ $user->details->image }}" alt="Logo" class="pull-right" height="50px">
+                                                                                    <img src="{{ asset('liens/' . $user->details->image) }}" alt="Logo" class="pull-right" height="50px">
                                                                                 @else
                                                                                     <img src="{{ env('ASSET_URL') }}/images/avatar5.png" alt="Logo" class="pull-right" height="50px">
                                                                                 @endif

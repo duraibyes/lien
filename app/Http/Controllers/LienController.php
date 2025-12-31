@@ -85,7 +85,7 @@ class LienController extends Controller
                     'message' => 'The email is already taken.',
                 ], 200);
             }
-
+            info($request->all());
             $fileName = '';
             if ($request->hasFile('logo')) {
                 $extension = File::extension($request->logo->getClientOriginalName());

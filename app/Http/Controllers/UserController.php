@@ -1259,15 +1259,29 @@ class UserController extends Controller
             $flag = 0;
             $remedy = Remedy::where('state_id', $project->state_id)
                 ->where('project_type_id', $project->project_type_id);
+            $remedyIds = $remedy->pluck('id')->toArray();
+
             $tiers = TierTable::where('role_id', $project->role_id)
                 ->where('customer_id', $project->customer_id)->firstOrFail();
-            $remedySteps = RemedyStep::whereIn('remedy_id', $remedy->pluck('id'));
+
+            if (empty($remedyIds)) {
+                // no remedies for this project - nothing to process
+                continue;
+            }
+
+            $remedySteps = RemedyStep::whereIn('remedy_id', $remedyIds);
             $tierRemedySteps = TierRemedyStep::where('tier_id', $tiers->id)
-                ->whereIn('remedy_step_id', $remedySteps->pluck('id'))
+                ->whereIn('remedy_step_id', $remedySteps->pluck('id')->toArray())
                 ->whereIn('answer1', [$project->answer1, ''])
                 ->whereIn('answer2', [$project->answer2, '']);
-            $remedyStepsNew = $remedySteps->whereIn('id', $tierRemedySteps->pluck('remedy_step_id'));
-            $remedyDate = RemedyDate::where('status', '1')->whereIn('remedy_id', $remedy->pluck('id'))->whereIn('id', $remedyStepsNew->pluck('remedy_date_id'))->orderBy('date_order', 'ASC')->get();
+
+            $remedyStepsNew = $remedySteps->whereIn('id', $tierRemedySteps->pluck('remedy_step_id')->toArray());
+
+            $remedyDate = RemedyDate::where('status', '1')
+                ->whereIn('remedy_id', $remedyIds)
+                ->whereIn('id', $remedyStepsNew->pluck('remedy_date_id')->toArray())
+                ->orderBy('date_order', 'ASC')->get();
+
             $role_id = ProjectDetail::where('id', $project->id);
             $answer = $role_id->first()->answer1;
             if ($answer == 'Yes' || $answer == 'Commercial') {
@@ -1276,14 +1290,15 @@ class UserController extends Controller
                 $flag = 2;
             }
             if ($flag == 0) {
-                $tier = TierTable::where('role_id', $role_id->pluck('role_id'))->where('customer_id', $role_id->pluck('customer_id'));
-                $tierRem = TierRemedyStep::where('tier_id', $tier->pluck('id'));
-                $deadline1 = RemedyStep::where('status', '1')->whereIn('remedy_date_id', $remedyDate->pluck('id'))
-                    ->whereIn('remedy_id', $remedy->pluck('id'));
-                $deadline = $deadline1->whereIn('id', $tierRem->pluck('remedy_step_id'))->get();
+                $tier = TierTable::whereIn('role_id', $role_id->pluck('role_id'))->whereIn('customer_id', $role_id->pluck('customer_id'));
+                $tierRem = TierRemedyStep::whereIn('tier_id', $tier->pluck('id')->toArray());
+                $remedy_step_id = $tierRem->pluck('remedy_step_id')->toArray();
+                $deadline1 = RemedyStep::where('status', '1')->whereIn('remedy_date_id', $remedyDate->pluck('id')->toArray())
+                    ->whereIn('remedy_id', $remedyIds);
+                $deadline = $deadline1->whereIn('id', $remedy_step_id)->get();
             } elseif ($flag == 1) {
-                $tier = TierTable::where('role_id', $role_id->pluck('role_id'))->where('customer_id', $role_id->pluck('customer_id'));
-                $tierRem = TierRemedyStep::where('tier_id', $tier->pluck('id'));
+                $tier = TierTable::whereIn('role_id', $role_id->pluck('role_id'))->whereIn('customer_id', $role_id->pluck('customer_id'));
+                $tierRem = TierRemedyStep::whereIn('tier_id', $tier->pluck('id')->toArray());
                 if ($answer == 'Yes') {
                     $tierRem1 = $tierRem->where(function ($query) {
                         $query->where('answer1', 'Yes')
@@ -1316,7 +1331,6 @@ class UserController extends Controller
                     ->whereIn('remedy_id', $remedy->pluck('id'));
                 $deadline = $deadline1->whereIn('id', $tierRem1->pluck('remedy_step_id'))->get();
             }
-
             foreach ($deadline as $dkey => $value) {
                 $years = $value->years;
                 $months = $value->months;
@@ -1579,12 +1593,10 @@ class UserController extends Controller
         $searchFlag = request()->get('search');
         $perPage = 7;
 
-//        dd(Auth::user()->lienUser);
         $states = LienProviderStates::where('lien_id', Auth::user()->lienUser->id)->pluck('state_id');
 
         $membersAssociated = MemberLienMap::where('lien_id', Auth::user()->lienUser->id)->pluck('user_id')->toArray();
         $projectList = ProjectDetail::whereIn('user_id', $membersAssociated)->pluck('project_name', 'id');
-
         if ($case == 'active') {
             /*$projects = ProjectDetail::whereIn('user_id', $membersAssociated)->where('status', '1');*/
             $projects = ProjectDetail::where('status', '1');
@@ -1611,22 +1623,22 @@ class UserController extends Controller
             if (($assignedDateFrom != '') && ($assignedDateTo != '')) {
                 $dateFrom = ($assignedDateFrom != '') ? date('Y-m-d 00:00:00', strtotime($assignedDateFrom)) : date('Y-m-d', strtotime(''));
                 $dateTo = ($assignedDateTo != '') ? date('Y-m-d 23:59:59', strtotime($assignedDateTo)) : date('Y-m-d');
-//                $projects->orWhereBetween('project_details.created_at', [$dateFrom, $dateTo]);
-//                $projects->orWhereBetween('project_details.updated_at', [$dateFrom, $dateTo]);
+                    //                $projects->orWhereBetween('project_details.created_at', [$dateFrom, $dateTo]);
+                    //                $projects->orWhereBetween('project_details.updated_at', [$dateFrom, $dateTo]);
 
                 $projects->leftJoin('project_tasks', function($join) {
                     $join->on('project_tasks.project_id', '=', 'project_details.id');
                 })->select('project_details.*')
                 ->groupBy('project_details.id');
-//                $projects->where('project_tasks.due_date', '>=', date('Y-m-d'));
-//                $projects->orWhereBetween('project_tasks.due_date', [$dateFrom, $dateTo]);
+                    //                $projects->where('project_tasks.due_date', '>=', date('Y-m-d'));
+                    //                $projects->orWhereBetween('project_tasks.due_date', [$dateFrom, $dateTo]);
             }
 
-//            if (($dateCompletedFrom != '') || ($dateCompletedTo != '')) {
-//                $dateCompletedFrom = ($dateCompletedFrom != '') ? date('Y-m-d 00:00:00', strtotime($dateCompletedFrom)) : date('Y-m-d', strtotime(''));
-//                $dateCompletedTo = ($dateCompletedTo != '') ? date('Y-m-d 23:59:59', strtotime($dateCompletedTo)) : date('Y-m-d', strtotime(''));
-//                $projects->whereBetween('created_at', [$dateCompletedFrom, $dateCompletedTo]);
-//            }
+                    //            if (($dateCompletedFrom != '') || ($dateCompletedTo != '')) {
+                    //                $dateCompletedFrom = ($dateCompletedFrom != '') ? date('Y-m-d 00:00:00', strtotime($dateCompletedFrom)) : date('Y-m-d', strtotime(''));
+                    //                $dateCompletedTo = ($dateCompletedTo != '') ? date('Y-m-d 23:59:59', strtotime($dateCompletedTo)) : date('Y-m-d', strtotime(''));
+                    //                $projects->whereBetween('created_at', [$dateCompletedFrom, $dateCompletedTo]);
+                    //            }
 
             if ($state != '') {
                 $projects->where('state_id', $state);
@@ -1680,11 +1692,12 @@ class UserController extends Controller
             //dd($projects);
             $projects->whereIn('user_id', $membersAssociated)->orderBy('updated_at', 'DESC');
         }
-
-//        dd($states);
+        
         $projects->whereIn('state_id', $states);
+   
 
         $allProjects = $projects->get();
+
         $total_contracts_amount = 0;
         $contracts_avg = 0;
         foreach($allProjects as $project) {
@@ -1703,15 +1716,21 @@ class UserController extends Controller
             $flag = 0;
             $remedy = Remedy::where('state_id', $project->state_id)
                 ->where('project_type_id', $project->project_type_id);
+            $remedyIds = $remedy->pluck('id')->toArray();
+
+            if (empty($remedyIds)) {
+                continue;
+            }
+
             $tiers = TierTable::where('role_id', $project->role_id)
                 ->where('customer_id', $project->customer_id)->firstOrFail();
-            $remedySteps = RemedyStep::whereIn('remedy_id', $remedy->pluck('id'));
+            $remedySteps = RemedyStep::whereIn('remedy_id', $remedyIds);
             $tierRemedySteps = TierRemedyStep::where('tier_id', $tiers->id)
-                ->whereIn('remedy_step_id', $remedySteps->pluck('id'))
+                ->whereIn('remedy_step_id', $remedySteps->pluck('id')->toArray())
                 ->whereIn('answer1', [$project->answer1, ''])
                 ->whereIn('answer2', [$project->answer2, '']);
-            $remedyStepsNew = $remedySteps->whereIn('id', $tierRemedySteps->pluck('remedy_step_id'));
-            $remedyDate = RemedyDate::where('status', '1')->whereIn('remedy_id', $remedy->pluck('id'))->whereIn('id', $remedyStepsNew->pluck('remedy_date_id'))->orderBy('date_order', 'ASC')->get();
+            $remedyStepsNew = $remedySteps->whereIn('id', $tierRemedySteps->pluck('remedy_step_id')->toArray());
+            $remedyDate = RemedyDate::where('status', '1')->whereIn('remedy_id', $remedyIds)->whereIn('id', $remedyStepsNew->pluck('remedy_date_id')->toArray())->orderBy('date_order', 'ASC')->get();
             $role_id = ProjectDetail::where('id', $project->id);
             $answer = $role_id->first()->answer1;
             if ($answer == 'Yes' || $answer == 'Commercial') {
@@ -1721,13 +1740,13 @@ class UserController extends Controller
             }
             if ($flag == 0) {
                 $tier = TierTable::where('role_id', $role_id->pluck('role_id'))->where('customer_id', $role_id->pluck('customer_id'));
-                $tierRem = TierRemedyStep::where('tier_id', $tier->pluck('id'));
-                $deadline1 = RemedyStep::where('status', '1')->whereIn('remedy_date_id', $remedyDate->pluck('id'))
-                    ->whereIn('remedy_id', $remedy->pluck('id'));
-                $deadline = $deadline1->whereIn('id', $tierRem->pluck('remedy_step_id'))->get();
+                $tierRem = TierRemedyStep::whereIn('tier_id', $tier->pluck('id')->toArray());
+                $deadline1 = RemedyStep::where('status', '1')->whereIn('remedy_date_id', $remedyDate->pluck('id')->toArray())
+                    ->whereIn('remedy_id', $remedyIds);
+                $deadline = $deadline1->whereIn('id', $tierRem->pluck('remedy_step_id')->toArray())->get();
             } elseif ($flag == 1) {
                 $tier = TierTable::where('role_id', $role_id->pluck('role_id'))->where('customer_id', $role_id->pluck('customer_id'));
-                $tierRem = TierRemedyStep::where('tier_id', $tier->pluck('id'));
+                $tierRem = TierRemedyStep::whereIn('tier_id', $tier->pluck('id')->toArray());
                 if ($answer == 'Yes') {
                     $tierRem1 = $tierRem->where(function ($query) {
                         $query->where('answer1', 'Yes')
@@ -1739,12 +1758,12 @@ class UserController extends Controller
                             ->orWhere('answer1', '');
                     });
                 }
-                $deadline1 = RemedyStep::where('status', '1')->whereIn('remedy_date_id', $remedyDate->pluck('id'))
-                    ->whereIn('remedy_id', $remedy->pluck('id'));
-                $deadline = $deadline1->whereIn('id', $tierRem1->pluck('remedy_step_id'))->get();
+                $deadline1 = RemedyStep::where('status', '1')->whereIn('remedy_date_id', $remedyDate->pluck('id')->toArray())
+                    ->whereIn('remedy_id', $remedyIds);
+                $deadline = $deadline1->whereIn('id', $tierRem1->pluck('remedy_step_id')->toArray())->get();
             } elseif ($flag == 2) {
                 $tier = TierTable::where('role_id', $role_id->pluck('role_id'))->where('customer_id', $role_id->pluck('customer_id'));
-                $tierRem = TierRemedyStep::where('tier_id', $tier->pluck('id'));
+                $tierRem = TierRemedyStep::whereIn('tier_id', $tier->pluck('id')->toArray());
                 if ($answer == 'No') {
                     $tierRem1 = $tierRem->where(function ($query) {
                         $query->where('answer1', 'No')
@@ -1756,9 +1775,9 @@ class UserController extends Controller
                             ->orWhere('answer1', '');
                     });
                 }
-                $deadline1 = RemedyStep::where('status', '1')->whereIn('remedy_date_id', $remedyDate->pluck('id'))
-                    ->whereIn('remedy_id', $remedy->pluck('id'));
-                $deadline = $deadline1->whereIn('id', $tierRem1->pluck('remedy_step_id'))->get();
+                $deadline1 = RemedyStep::where('status', '1')->whereIn('remedy_date_id', $remedyDate->pluck('id')->toArray())
+                    ->whereIn('remedy_id', $remedyIds);
+                $deadline = $deadline1->whereIn('id', $tierRem1->pluck('remedy_step_id')->toArray())->get();
             }
 
             foreach ($deadline as $dkey => $value) {
@@ -2097,6 +2116,7 @@ class UserController extends Controller
             'phone' => 'nullable|numeric'
         ]);
         try {
+            info($request->all());  
             if ($request->hasFile('image')) {
                 $extension = File::extension($request->image->getClientOriginalName());
                 if (strtolower($extension) == "jpeg" || strtolower($extension) == "jpg" || strtolower($extension) == "png") {

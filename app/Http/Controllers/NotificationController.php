@@ -33,53 +33,80 @@ class NotificationController extends Controller
 
     public static function getUserProjectDeadlines()
     {
+        try {
+            $user = Auth::user();
+            $projects = ProjectDetail::where('user_id', $user->id)->get();
+            $deoist = array();
+            // var_dump($projects);
+            $setting = NotificationSettings::where('user_id', Auth::user()->id)->first();
+            if (isset($setting)) {
+                $days_alert = $setting->days;
+            } else {
+                $days_alert = 0;
+            }
+            $deadline_list = array();
 
-        $user = Auth::user();
-        $projects = ProjectDetail::where('user_id', $user->id)->get();
-        $deoist = array();
-        // var_dump($projects);
-        $setting = NotificationSettings::where('user_id', Auth::user()->id)->first();
-        if (isset($setting)) {
-            $days_alert = $setting->days;
-        } else {
-            $days_alert = 0;
-        }
-        $deadline_list = array();
+            foreach ($projects  as $project) {
+                $remedy = Remedy::where('state_id', $project->state_id);
+                // load the project detail record to get scalar role/customer ids
+                $roleDetail = ProjectDetail::find($project->id);
 
-        foreach ($projects  as $project) {
-            $remedy = Remedy::where('state_id', $project->state_id);
-            $role_id = ProjectDetail::where('id', $project->id);
-            $remedySteps = RemedyStep::whereIn('remedy_id', $remedy->pluck('id'));
-            $tiers = TierTable::where('role_id', $project->role_id);
+                $remedyIds = $remedy->pluck('id')->toArray();
+                if (empty($remedyIds)) {
+                    continue; // no remedies for this project, skip
+                }
 
-            $tierRemedySteps = TierRemedyStep::whereIn('tier_id', $tiers->pluck('id'));
+                $remedySteps = RemedyStep::whereIn('remedy_id', $remedyIds);
+                // fetch tiers and ensure pluck returns an array to avoid driver binding issues
+                $tiers = TierTable::where('role_id', $project->role_id)->get();
+                $tiersIds = $tiers->pluck('id')->toArray();
+                if (empty($tiersIds)) {
+                    continue; // no tiers for this project, skip
+                }
 
-            $remedyStepsNew = $remedySteps->whereIn('id', $tierRemedySteps->pluck('remedy_step_id'));
+                $tierRemedySteps = TierRemedyStep::whereIn('tier_id', $tiersIds);
+                $tierRemedyStepIds = $tierRemedySteps->pluck('remedy_step_id')->toArray();
+                if (empty($tierRemedyStepIds)) {
+                    continue; // nothing mapped to tiers, skip
+                }
 
-            $remedyDate = RemedyDate::where('status', '1')->whereIn('remedy_id', $remedy->pluck('id'))->whereIn('id', $remedyStepsNew->pluck('remedy_date_id'))->orderBy('date_order', 'ASC')->get();
+                $remedyStepsNew = $remedySteps->whereIn('id', $tierRemedyStepIds);
 
-            $tier = TierTable::where('role_id', $role_id->pluck('role_id'))->where('customer_id', $role_id->pluck('customer_id'));
-            $tierRem = TierRemedyStep::where('tier_id', $tier->pluck('id'));
-            $deadline1 = RemedyStep::where('status', '1')->whereIn('remedy_date_id', $remedyDate->pluck('id'))
-                ->whereIn('remedy_id', $remedy->pluck('id'));
-            $deadlines = $deadline1->whereIn('id', $tierRem->pluck('remedy_step_id'))->get();
+                $remedyDate = RemedyDate::where('status', '1')
+                    ->whereIn('remedy_id', $remedyIds)
+                    ->whereIn('id', $remedyStepsNew->pluck('remedy_date_id')->toArray())
+                    ->orderBy('date_order', 'ASC')->get();
 
-            foreach ($deadlines as $key => $value) {
-                $years = $value->years;
-                $months = $value->months;
-                $days = $value->days;
-                $remedyDateId = $value->remedy_date_id;
-                $daysRemain = ($years * 365) + ($months * 30) + ($days * 1);
-                if (($daysRemain <= $days_alert) && $daysRemain > 0) {
-                    $deadline = new Notification();
-                    $deadline->days = $daysRemain;
-                    $deadline->project_name = $project->project_name;
-                    $deadline->project_id = $project->id;
+                // use scalar role/customer ids from loaded project detail
+                $tier = TierTable::where('role_id', $roleDetail->role_id)->where('customer_id', $roleDetail->customer_id)->get();
+                $tierRem = TierRemedyStep::whereIn('tier_id', $tier->pluck('id')->toArray());
+                $deadline1 = RemedyStep::where('status', '1')
+                    ->whereIn('remedy_date_id', $remedyDate->pluck('id')->toArray())
+                    ->whereIn('remedy_id', $remedy->pluck('id')->toArray());
+                $deadlines = $deadline1->whereIn('id', $tierRem->pluck('remedy_step_id')->toArray())->get();
 
-                    array_push($deadline_list, $deadline);
+                foreach ($deadlines as $key => $value) {
+                    $years = $value->years;
+                    $months = $value->months;
+                    $days = $value->days;
+                    $remedyDateId = $value->remedy_date_id;
+                    $daysRemain = ($years * 365) + ($months * 30) + ($days * 1);
+                    if (($daysRemain <= $days_alert) && $daysRemain > 0) {
+                        $deadline = new Notification();
+                        $deadline->days = $daysRemain;
+                        $deadline->project_name = $project->project_name;
+                        $deadline->project_id = $project->id;
+
+                        array_push($deadline_list, $deadline);
+                    }
                 }
             }
+
+            return $deadline_list;
+        } catch (\Exception $e) {
+            // safe fallback for view: return no deadlines on errors
+            return [];
         }
-        return $deadline_list;
     }
+     
 }
