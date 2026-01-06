@@ -223,12 +223,12 @@ Route::group(['prefix' => 'member', 'middleware' => ['member', 'web']], function
     //Member Project Section
     Route::get('project', [ProjectController::class, 'getProject'])->name('member.project');
     Route::get('record/search', [ProjectController::class, 'searchProjectRecord'])->name('member.record.search'); // not used
-    Route::get('search/construction/monitor', [ProjectController::class, 'searchProjectConstructionMonitor'])->name('member.search.construction.monitor');
-    Route::post('create/construction/monitor/project', [ProjectController::class, 'createProjectConstructionMonitor'])->name('member.create.construction.monitor');
+    Route::get('search/construction/monitor', [ProjectController::class, 'searchProjectConstructionMonitor'])->name('member.search.construction.monitor'); // code hidden
+    Route::post('create/construction/monitor/project', [ProjectController::class, 'createProjectConstructionMonitor'])->name('member.create.construction.monitor'); // code hidden
     Route::get('project/dashboard', [VineTransferController::class, 'viewDash'])->name('vine.job.view');
     Route::get('project/delete/{id}/{project_id}', [VineTransferController::class, 'delete'])->name('project.Delete');
     Route::post('project/save', [VineTransferController::class, 'save'])->name('project.save');
-    Route::post('project/jobcontract', [VineTransferController::class, 'jobcontract'])->name('project.jobcontract');
+    Route::post('project/jobcontract', [VineTransferController::class, 'jobcontract'])->name('project.jobcontract'); // not used
     Route::post('project/media', [VineTransferController::class, 'storeMedia'])->name('project.storeMedia');
     Route::get('project/json', [VineTransferController::class, 'getJSON'])->name('vine.job.json');
     Route::get('project/send-claim', [VineTransferController::class, 'sendClaim'])->name('vine.job.claim');
@@ -381,8 +381,8 @@ Route::post('consultation/post', [ConsultationController::class, 'postConsultati
 Route::get('consultation', [ConsultationController::class, 'getConsultation'])->name('member.get.consultation');
 
 //Export Database
-Route::get('export', [ExportController::class, 'deadline'])->name('export');
-Route::get('export/line-bound-summary', [ExportController::class, 'lineBoundSummery'])->name('line.bound.summery');
+Route::get('export', [ExportController::class, 'deadline'])->name('export');  // not used in application
+Route::get('export/line-bound-summary', [ExportController::class, 'lineBoundSummery'])->name('line.bound.summery'); // not used in application
 
 Route::get('express-toggle', function() {
 

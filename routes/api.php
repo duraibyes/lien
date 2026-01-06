@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RemedyController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\Api\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,9 +19,11 @@ use App\Http\Controllers\ProjectController;
 */
 
 Route::post('registration', [UserController::class, 'postRegistrationAPI'])->name('post.register');
+Route::post('login', [AuthController::class, 'login'])->name('api.login');
 Route::get('remedy', [RemedyController::class, 'getRemedies']);
 Route::get('slide-chart/{state}/{project_type_id}', [ProjectController::class, 'getSlideChart']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+

@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Laravel\Sanctum\HasApiTokens;
 use Laravel\Cashier\Billable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -13,6 +14,7 @@ use DB;
  */
 class User extends Authenticatable
 {
+    use HasApiTokens;
     use Notifiable;
     use Billable;
 
