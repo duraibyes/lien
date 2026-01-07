@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
+use App\Http\Resources\UserResource;
 use App\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
 
 class AuthController extends Controller
 {
@@ -27,8 +30,19 @@ class AuthController extends Controller
         $token = $user->createToken($request->input('device_name', 'api'))->plainTextToken;
 
         return response()->json([
-            'user' => $user,
+            'user' => new UserResource($user),
             'token' => $token,
         ]);
     }
+
+    public function logout(Request $request)
+    {
+        // Revoke only current access token
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'message' => 'Logged out successfully'
+        ]);
+    }
+
 }

@@ -3,10 +3,11 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class LoginRequest extends FormRequest
+class SignupRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,26 +24,16 @@ class LoginRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         return [
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
-            'device_name' => ['sometimes', 'string'],
-        ];
-    }
-
-    /**
-     * Custom messages for validation
-     *
-     * @return array
-     */
-    public function messages()
-    {
-        return [
-            'email.required' => 'The email field is required.',
-            'email.email' => 'The email must be a valid email address.',
-            'password.required' => 'The password field is required.',
+            'email' => ['required', 'email', 'unique:users,email'],
+            'password' => [
+                'required',
+                'confirmed',
+                Password::min(8)->mixedCase()->numbers(),
+            ],
+            'plan_type' => ['nullable', 'string'],
         ];
     }
 
@@ -51,7 +42,7 @@ class LoginRequest extends FormRequest
         throw new HttpResponseException(
             response()->json([
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors'  => $validator->errors(),
             ], 422)
         );
     }
