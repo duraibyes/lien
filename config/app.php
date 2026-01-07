@@ -183,6 +183,8 @@ return [
         App\Providers\TelescopeServiceProvider::class,
         App\Providers\HelperServiceProvider::class,
 
+        OwenIt\Auditing\AuditingServiceProvider::class
+
     ],
 
     /*

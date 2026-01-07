@@ -48,6 +48,7 @@
     44 => 'Laravel\\Telescope\\TelescopeServiceProvider',
     45 => 'App\\Providers\\TelescopeServiceProvider',
     46 => 'App\\Providers\\HelperServiceProvider',
+    47 => 'OwenIt\\Auditing\\AuditingServiceProvider',
   ),
   'eager' => 
   array (
@@ -82,6 +83,7 @@
     28 => 'Laravel\\Telescope\\TelescopeServiceProvider',
     29 => 'App\\Providers\\TelescopeServiceProvider',
     30 => 'App\\Providers\\HelperServiceProvider',
+    31 => 'OwenIt\\Auditing\\AuditingServiceProvider',
   ),
   'deferred' => 
   array (
