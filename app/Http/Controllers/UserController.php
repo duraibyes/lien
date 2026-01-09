@@ -655,7 +655,7 @@ class UserController extends Controller
     public function postRegistration(Request $request)
     {
         //DB::beginTransaction();
-        //dd($request->all());
+        
         $validator = Validator::make($request->all(), [
             // 'companyName' => 'required|min:3',
             // 'firstName' => 'required|min:3',
@@ -666,7 +666,7 @@ class UserController extends Controller
             'password' => 'required|min:6',
             // 'confirmPassword' => 'required|same:password'
         ]);
-
+        
         if ($validator->fails()) {
             return redirect()->back()->withInput()->withErrors($validator->errors());
         }
@@ -674,34 +674,32 @@ class UserController extends Controller
             $newUser = new User();
             // $newUser->name = $request->firstName . ' ' . $request->lastName;
             $newUser->email = $request->email;
-            // $newUser->user_name = $request->userName;
+            $newUser->user_name = $request->email;
             $newUser->password = $request->password;
             $newUser->role = '5';
             $newUser->status = '0';
             $newUser->save();
-
-            $company = new Company();
-            $company->user_id = $newUser->id;
+            // $company = new Company();
+            // $company->user_id = $newUser->id;
             // $company->company = $request->companyName;
             // $company->address = $request->address;
             // $company->city = $request->city;
             // $company->state_id = $request->state;
             // $company->zip = $request->zip;
-            $company->save();
+            // $company->save();
 
-            $userDetails = new UserDetails();
-            // $userDetails->company = $request->companyName;
-            $userDetails->company_id = $company->id;
-            // $userDetails->first_name = $request->firstName;
-            // $userDetails->last_name = $request->lastName;
-            // $userDetails->address = $request->address;
-            // $userDetails->city = $request->city;
-            // $userDetails->state_id = $request->state;
-            $userDetails->user_id = $newUser->id;
-            // $userDetails->zip = $request->zip;
-            // $userDetails->phone = $request->phone;
-            $userDetails->save();
-
+            // $userDetails = new UserDetails();
+            // // $userDetails->company = $request->companyName;
+            // $userDetails->company_id = $company->id;
+            // // $userDetails->first_name = $request->firstName;
+            // // $userDetails->last_name = $request->lastName;
+            // // $userDetails->address = $request->address;
+            // // $userDetails->city = $request->city;
+            // // $userDetails->state_id = $request->state;
+            // $userDetails->user_id = $newUser->id;
+            // // $userDetails->zip = $request->zip;
+            // // $userDetails->phone = $request->phone;
+            // $userDetails->save();
             SendInvitationOnRegister::dispatch($newUser);
 
             // DB::commit();

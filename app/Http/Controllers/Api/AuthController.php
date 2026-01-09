@@ -5,8 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Resources\UserResource;
-use App\User;
-use Illuminate\Support\Facades\Hash;
+use App\Services\Auth\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -19,13 +18,9 @@ class AuthController extends Controller
      * @param LoginRequest $request
      * @return JsonResponse
      */
-    public function login(LoginRequest $request)
+    public function login(LoginRequest $request, AuthService $authService): JsonResponse
     {
-        $user = User::where('email', $request->email)->first();
-
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid credentials.'], 401);
-        }
+        $user = $authService->authenticate($request->email, $request->password);
 
         $token = $user->createToken($request->input('device_name', 'api'))->plainTextToken;
 
@@ -34,8 +29,13 @@ class AuthController extends Controller
             'token' => $token,
         ]);
     }
-
-    public function logout(Request $request)
+    /**
+     * Logout user (Revoke the token)
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function logout(Request $request): JsonResponse
     {
         // Revoke only current access token
         $request->user()->currentAccessToken()->delete();

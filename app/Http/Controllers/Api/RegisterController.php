@@ -5,49 +5,27 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SignupRequest;
 use App\Http\Resources\UserResource;
-use App\Jobs\SendInvitationOnRegister;
-use App\Models\Company;
-use App\Models\UserDetails;
-use App\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-
+use App\Services\Auth\RegistrationService;
 
 class RegisterController extends Controller
 {
-    public function signup(SignupRequest $request)
+    public function signup(SignupRequest $request, RegistrationService $registrationService)
     {
 
-        return DB::transaction(function () use ($request) {
+        $user = $registrationService->register(
+            $request->validated()
+        );
 
-            // Create User
-            $user = User::create([
-                'email'    => $request->email,
-                'password' => Hash::make($request->password),
-                'role'     => '5', // member
-                'status'   => '0', // inactive
-            ]);
+        // Sanctum token (API only)
+        $token = $user->createToken(
+            $request->input('device_name', 'api')
+        )->plainTextToken;
 
-            // Create first Company (user can add more later)
-            $user->companies()->create([]);
-
-            // Create User Details (one-to-one)
-            $user->details()->create([]);
-
-            // Dispatch background job (mail / activation)
-            SendInvitationOnRegister::dispatch($user);
-
-            // Create Sanctum token (optional on signup)
-            $token = $user->createToken(
-                $request->input('device_name', 'api')
-            )->plainTextToken;
-
-            return response()->json([
-                'message' => 'Registration successful. Your account is pending activation.',
-                'user'    => new UserResource($user),
-                'token'   => $token,
-            ], 201);
-        }, 3);
+        return response()->json([
+            'message' => 'Registration successful. Your account is pending activation.',
+            'user'    => new UserResource($user),
+            'token'   => $token,
+        ], 201);
+        
     }
 }

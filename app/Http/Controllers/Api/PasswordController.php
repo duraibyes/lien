@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Services\Auth\PasswordResetService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Validation\Rules\Password as PasswordRule;
-
 
 class PasswordController extends Controller
 {
@@ -35,31 +35,11 @@ class PasswordController extends Controller
     /**
      * Reset password
      */
-    public function reset(Request $request)
+    public function reset(ResetPasswordRequest $request, PasswordResetService $passwordResetService)
     {
-        $request->validate([
-            'token'    => 'required',
-            'email'    => 'required|email',
-            'password' => [
-                'required',
-                'confirmed',
-                PasswordRule::min(8)
-                    ->mixedCase()   // upper + lower
-                    ->numbers()     // numeric
-                    ->letters(),    // alphabet
-            ],
-        ]);
-
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
-                $user->forceFill([
-                    'password' => $password,
-                ])->save();
-
-                // Optional: revoke all tokens
-                $user->tokens()->delete();
-            }
+       
+        $status = $passwordResetService->reset(
+            $request->validated()
         );
 
         return $status === Password::PASSWORD_RESET

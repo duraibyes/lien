@@ -229,6 +229,11 @@ class User extends Authenticatable
         return $this->hasMany('App\Models\Company', 'user_id', 'id');
     }
 
+    public function company()
+    {
+        return $this->hasOne('App\Models\Company', 'user_id', 'id');
+    }
+
     /**
      * Returns all the company contacts associated with a user.
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
