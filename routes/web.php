@@ -17,7 +17,9 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ConsultationController;
+use App\Http\Controllers\ExcelUploadController;
 use App\Http\Controllers\LienDocumentController;
+use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\VineTransferController;
 use App\Http\Controllers\ProjectManagementController;
@@ -183,6 +185,10 @@ Route::group(['prefix' => 'admin', 'middleware' => ['admin']], function () {
     Route::post('plans/update', [MemberController::class, 'updatePlan'])->name('update.member.plan');
     Route::post('get/max-price', [UserController::class, 'getMaxPrice'])->name('package.get.maxPrice');
     Route::get('auto-complete/company', [ContactController::class, 'autoCompleteAdminCompany'])->name('autocomplete.admin.company');
+    Route::get('/excel-upload', [ExcelUploadController::class, 'index'])->name('excel.upload.form');
+    Route::post('/excel-upload', [ExcelUploadController::class, 'upload'])->name('excel.upload');
+    Route::get('/permissions', [PermissionController::class, 'index'])->name('admin.permissions');
+    Route::post('/submit/permission', [PermissionController::class, 'index'])->name('role.permissions.update');
 });
 
 //Authentication Member Route Groups
@@ -368,7 +374,7 @@ Route::group(['prefix' => 'lien', 'middleware' => ['lien', 'web']], function () 
     Route::get('project/document-claim-view/{project_id}/{flag}', [LienDocumentController::class, 'getDocumentClaimView'])->name('get.lien.documentClaimView');  // route available but function getDocumentClaimView not exists
     Route::get('project/document-credit-application-view/{project_id}/{flag}', [LienDocumentController::class, 'getDocumentCreditView'])->name('get.lien.documentCreditView'); // route available but function getDocumentCreditView not exists
     Route::get('project/document-joint-payment-view/{project_id}/{flag}', [LienDocumentController::class, 'getDocumentJointView'])->name('get.lien.documentJointView'); // route available but function getDocumentJointView not exists
-    Route::get('project/document-waver-view/{project_id}/{flag}', [LienDocumentController::class, 'getDocumentWaverView'])->name('get.lien.documentWaverView'); 
+    Route::get('project/document-waver-view/{project_id}/{flag}', [LienDocumentController::class, 'getDocumentWaverView'])->name('get.lien.documentWaverView');
     Route::get('project/job-info-sheet/{project_id}', [LienDocumentController::class, 'getJobInfoSheet'])->name('get.lien.job.info.sheet');
     Route::get('job-info/export/{project_id}', [LienDocumentController::class, 'exportJobInfo'])->name('get.lien.jobInfoExport');
     Route::get('project/line-bound-summary/{state}/{projectType}', [LienDocumentController::class, 'getLineBoundSummery'])->name('get.lien.lineBoundSummery');
@@ -384,19 +390,19 @@ Route::get('consultation', [ConsultationController::class, 'getConsultation'])->
 Route::get('export', [ExportController::class, 'deadline'])->name('export');  // not used in application
 Route::get('export/line-bound-summary', [ExportController::class, 'lineBoundSummery'])->name('line.bound.summery'); // not used in application
 
-Route::get('express-toggle', function() {
+Route::get('express-toggle', function () {
 
     $on_create_project_route = request()->has('new');
 
-    if(session()->has('express') || request()->has('express')) {
+    if (session()->has('express') || request()->has('express')) {
         session()->forget('express');
-        if($on_create_project_route) {
+        if ($on_create_project_route) {
             return redirect()->route('member.create.project');
         }
     } else {
         session()->put('express', true);
 
-        if($on_create_project_route) {
+        if ($on_create_project_route) {
             return redirect()->route('member.create.express.project');
         }
     }

@@ -7,6 +7,7 @@ use Laravel\Cashier\Billable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use DB;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * Class User for user table
@@ -24,7 +25,13 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'user_name', 'role', 'email', 'password', 'status', 'parent_id'
+        'name',
+        'user_name',
+        'role',
+        'email',
+        'password',
+        'status',
+        'parent_id'
     ];
 
     /**
@@ -33,7 +40,8 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'password',
+        'remember_token',
     ];
 
     /**
@@ -42,7 +50,11 @@ class User extends Authenticatable
      */
     public function setPasswordAttribute($password)
     {
-        $this->attributes['password'] = bcrypt($password);
+        if (Hash::needsRehash($password)) {
+            $this->attributes['password'] = bcrypt($password);
+        } else {
+            $this->attributes['password'] = $password;
+        }
     }
 
     /**
@@ -258,22 +270,26 @@ class User extends Authenticatable
         return $this->hasOne('App\Models\MemberBillingAddress', 'user_id');
     }
 
-    public static function getAllChild($user_id) {
-       return DB::select(
-           DB::raw("
+    public static function getAllChild($user_id)
+    {
+        return DB::select(
+            DB::raw(
+                "
                 SELECT  id, name
                 FROM    (SELECT id, parent_id, name FROM users
                          ORDER BY parent_id, id) users_sorted,
                         (SELECT @pv := '$user_id') initialisation
                 WHERE   find_in_set(parent_id, @pv)
                 AND     length(@pv := concat(@pv, ',', id))"
-           )
-       );
+            )
+        );
     }
 
-    public static function getAllParents($user_id) {
+    public static function getAllParents($user_id)
+    {
         return DB::select(
-            DB::raw("
+            DB::raw(
+                "
                 SELECT T2.id, T2.name
                 FROM (
                     SELECT
@@ -288,5 +304,10 @@ class User extends Authenticatable
                 ORDER BY T1.lvl DESC"
             )
         );
+    }
+
+     public function permissions()
+    {
+        return $this->role->permissions ?? collect();
     }
 }
