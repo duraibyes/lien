@@ -88,5 +88,36 @@
 @endsection
 
 @section('script')
+<script>
+     // Module Select All
+    document.querySelectorAll('.module-checkbox').forEach(moduleCheckbox => {
+        moduleCheckbox.addEventListener('change', function () {
+            const module = this.dataset.module;
+            document.querySelectorAll(
+                '.permission-checkbox[data-module="' + module + '"]'
+            ).forEach(cb => cb.checked = this.checked);
+        });
+    });
 
+    // Auto update module checkbox
+    document.querySelectorAll('.permission-checkbox').forEach(permissionCheckbox => {
+        permissionCheckbox.addEventListener('change', function () {
+            const module = this.dataset.module;
+            const permissions = document.querySelectorAll(
+                '.permission-checkbox[data-module="' + module + '"]'
+            );
+            const moduleCheckbox = document.querySelector(
+                '.module-checkbox[data-module="' + module + '"]'
+            );
+
+            moduleCheckbox.checked = [...permissions].every(cb => cb.checked);
+        });
+    });
+
+    // Role select (optional AJAX hook)
+    document.getElementById('roleSelect').addEventListener('change', function () {
+        document.getElementById('role_id').value = this.value;
+        // You can AJAX-load permissions here if needed
+    });
+</script>
 @endsection
