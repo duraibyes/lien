@@ -28,7 +28,7 @@ class ResetPasswordRequest extends FormRequest
                 PasswordRule::min(8)
                     ->mixedCase()
                     ->numbers()
-                    ->letters(),
+                    ->symbols(),
             ],
         ];
     }

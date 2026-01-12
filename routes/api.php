@@ -8,6 +8,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PasswordController;
 use App\Http\Controllers\Api\RegisterController;
+use App\Http\Controllers\Api\V1\Profile\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +31,11 @@ Route::post('/forgot-password', [PasswordController::class, 'forgot']);
 Route::post('/reset-password', [PasswordController::class, 'reset']);
 
 Route::group(['middleware' => 'auth:sanctum'], function () {
+    //profile routes
+    Route::post('update/user-profile', [ProfileController::class, 'updateProfile'])->name('api.update.profile');
+    Route::get('user-profile', [ProfileController::class, 'getProfile'])->name('api.get.profile');
+    Route::post('update-profile-image', [ProfileController::class, 'updateProfileImage']);
+    Route::post('profile/update-password', [ProfileController::class, 'updatePassword']);
+
     Route::post('logout', [AuthController::class, 'logout'])->name('api.logout');
 });
-

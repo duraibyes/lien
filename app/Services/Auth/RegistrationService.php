@@ -21,7 +21,7 @@ class RegistrationService
                 'user_name'=> $data['email'],
                 'password' => $data['password'], // hashing handled in model
                 'role'     => 5, // member
-                'status'   => 0, // inactive
+                'status'   => '0', // active
             ]);
            
             // Dispatch invitation / activation mail

@@ -8,16 +8,18 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use DB;
 use Illuminate\Support\Facades\Hash;
+use OwenIt\Auditing\Contracts\Auditable;
 
 /**
  * Class User for user table
  * @package App
  */
-class User extends Authenticatable
+class User extends Authenticatable implements Auditable
 {
     use HasApiTokens;
     use Notifiable;
     use Billable;
+    use \OwenIt\Auditing\Auditable;
 
     /**
      * The attributes that are mass assignable.

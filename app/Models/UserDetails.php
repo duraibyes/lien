@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class UserDetails extends Model
+class UserDetails extends Model implements Auditable
 {
-    protected $fillable = ['user_id'];
+    use \OwenIt\Auditing\Auditable;
+    protected $fillable = ['user_id', 'company_id', 'first_name', 'last_name', 'phone', 'address', 'city', 'state_id', 'country', 'zip', 'image', 'office_phone', 'website', 'lien_status', 'created_by'];
     /**
      * Relation with Users table
      *

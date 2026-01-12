@@ -742,16 +742,17 @@ class MemberController extends Controller
     {
         DB::beginTransaction();
         info($request->all());
+        // dd($request->all());
         try {
             Stripe::setApiKey(config('services.stripe.secret'));
             $email = User::where('email', $request->email)->count();
             if ($email == '0') {
-                $userName = User::where('user_name', $request->user_name)->count();
-                if ($userName == '0') {
+                // $userName = User::where('user_name', $request->user_name)->count();
+                // if ($userName == '0') {
                     $user = new User();
                     $user->name = $request->fname . " " . $request->lname;
                     $user->email = $request->email;
-//                    $user->user_name = $request->user_name;
+                   $user->user_name = $request->email;
                     $user->password = $request->password;
                     $user->role = Role::where('type', 'Member')->firstOrFail()->id;
                     $user->save();
@@ -861,14 +862,14 @@ class MemberController extends Controller
                         'type' => 'success',
                         'message' => 'Member created'
                     ], 201);
-                } else {
-                    DB::rollback();
-                    return response()->json([
-                        'status' => false,
-                        'type' => 'user_name',
-                        'message' => 'User name already exists'
-                    ], 200);
-                }
+                // } else {
+                //     DB::rollback();
+                //     return response()->json([
+                //         'status' => false,
+                //         'type' => 'user_name',
+                //         'message' => 'User name already exists'
+                //     ], 200);
+                // }
             } else {
                 DB::rollback();
                 return response()->json([
