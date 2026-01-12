@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Mail\NewUserRegisteredMail;
 use Log;
 use Mail;
 use App\User;
@@ -34,17 +35,22 @@ class SendInvitationOnRegister implements ShouldQueue
     public function handle()
     {
         try {
-            $superUsers = User::where('role', 1)->get();
-            foreach ($superUsers as $superUser) {
-                Mail::send('basicUser.user.registration_email', ['superUser' => $superUser, 'newUser' => $this->newUser], function ($message) use ($superUser) {
-                    // $message->from(env('MAIL_FROM'), $subject);
-                    $message->to($superUser->email)->subject('New User Registered');
-                });
+            $superUsers = User::where('role', 1)
+                ->where('is_dev', 0)
+                ->get();
 
-//                Log::info('send registration mail to ' . $superUser->email);
+            foreach ($superUsers as $superUser) {
+                Mail::to($superUser->email)
+                    ->queue(new NewUserRegisteredMail(
+                        $superUser,
+                        $this->newUser
+                    ));
             }
-        } catch (\Exception $exception) {
-//            Log::info('Mail Error : ' . $exception->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('New user registration mail failed', [
+                'error' => $e->getMessage(),
+                'new_user_id' => $this->newUser->id ?? null,
+            ]);
         }
     }
 }

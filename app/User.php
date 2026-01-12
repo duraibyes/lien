@@ -2,11 +2,13 @@
 
 namespace App;
 
+use App\Notifications\CustomResetPasswordNotification;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Cashier\Billable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use DB;
+use Illuminate\Contracts\Auth\CanResetPassword;
 use Illuminate\Support\Facades\Hash;
 use OwenIt\Auditing\Contracts\Auditable;
 
@@ -14,7 +16,7 @@ use OwenIt\Auditing\Contracts\Auditable;
  * Class User for user table
  * @package App
  */
-class User extends Authenticatable implements Auditable
+class User extends Authenticatable implements Auditable, CanResetPassword
 {
     use HasApiTokens;
     use Notifiable;
@@ -313,8 +315,13 @@ class User extends Authenticatable implements Auditable
         );
     }
 
-     public function permissions()
+    public function permissions()
     {
         return $this->role->permissions ?? collect();
+    }
+
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new CustomResetPasswordNotification($token));
     }
 }
