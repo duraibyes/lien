@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Profile;
 
+use App\Traits\CommonValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateProfileRequest extends FormRequest
@@ -26,17 +27,17 @@ class UpdateProfileRequest extends FormRequest
         return [
             'first_name' => ['required', 'string', 'max:30'],
             'last_name' => ['required', 'string', 'max:30'],
-            'phone' => ['required', 'string', 'digits:10'],
-            'office_phone' => ['nullable', 'string', 'digits:10'],
+            'phone' => CommonValidationRules::phone(),
+            'office_phone' => CommonValidationRules::phone(false),
             'address' => ['required', 'string'],
             'city' => ['required', 'string', 'max:50'],
-            'state_id' => ['required', 'integer', 'exists:states,id'],
-            'zip_code' => ['required', 'string', 'max:10'],
+            'state_id' => CommonValidationRules::stateId(),
+            'zip_code' => CommonValidationRules::zipCode(),
             'country' => ['nullable', 'string', 'max:50'],
-            'company_id' => ['nullable', 'integer', 'exists:companies,id'],
+            'company_id' => CommonValidationRules::companyId(false),
             'company_name' => ['required', 'string', 'max:100'],
             'website' => ['nullable', 'string', 'url', 'max:100'],
-            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'image' => CommonValidationRules::imageRules(false),
         ];
     }
 }

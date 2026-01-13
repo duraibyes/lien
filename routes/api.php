@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PasswordController;
 use App\Http\Controllers\Api\RegisterController;
 use App\Http\Controllers\Api\V1\Profile\ProfileController;
+use App\Http\Controllers\Api\V1\SubUserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,11 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('user-profile', [ProfileController::class, 'getProfile'])->name('api.get.profile');
     Route::post('update-profile-image', [ProfileController::class, 'updateProfileImage']);
     Route::post('profile/update-password', [ProfileController::class, 'updatePassword']);
+    //sub user routes
+    Route::get('sub-users/datatable', [SubUserController::class, 'datatable']);
+    Route::get('sub-users/{sub_user}', [SubUserController::class, 'view']);
+    Route::apiResource('sub-users', SubUserController::class)
+        ->only(['store', 'update', 'destroy']);
 
     Route::post('logout', [AuthController::class, 'logout'])->name('api.logout');
 });

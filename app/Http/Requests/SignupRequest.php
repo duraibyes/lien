@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Traits\CommonValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
@@ -28,11 +28,7 @@ class SignupRequest extends FormRequest
     {
         return [
             'email' => ['required', 'email', 'unique:users,email'],
-            'password' => [
-                'required',
-                'confirmed',
-                Password::min(8)->mixedCase()->numbers()->symbols(),
-            ],
+            'password' => CommonValidationRules::password(),
             'plan_type' => ['nullable', 'string'],
         ];
     }

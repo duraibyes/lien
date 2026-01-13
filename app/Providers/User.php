@@ -6,6 +6,7 @@ use Laravel\Cashier\Billable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use DB;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * Class User for user table
@@ -15,6 +16,7 @@ class User extends Authenticatable
 {
     use Notifiable;
     use Billable;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.

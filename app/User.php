@@ -7,10 +7,11 @@ use Laravel\Sanctum\HasApiTokens;
 use Laravel\Cashier\Billable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use DB;
 use Illuminate\Contracts\Auth\CanResetPassword;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Contracts\Auditable;
+use DB;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * Class User for user table
@@ -18,9 +19,7 @@ use OwenIt\Auditing\Contracts\Auditable;
  */
 class User extends Authenticatable implements Auditable, CanResetPassword
 {
-    use HasApiTokens;
-    use Notifiable;
-    use Billable;
+    use HasApiTokens, SoftDeletes, Notifiable, Billable, HasFactory;
     use \OwenIt\Auditing\Auditable;
 
     /**
@@ -47,19 +46,6 @@ class User extends Authenticatable implements Auditable, CanResetPassword
         'password',
         'remember_token',
     ];
-
-    /**
-     * Encrypt password
-     * @param $password
-     */
-    public function setPasswordAttribute($password)
-    {
-        if (Hash::needsRehash($password)) {
-            $this->attributes['password'] = bcrypt($password);
-        } else {
-            $this->attributes['password'] = $password;
-        }
-    }
 
     /**
      * Relation with Role

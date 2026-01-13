@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Traits\CommonValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password as PasswordRule;
 
 class ResetPasswordRequest extends FormRequest
 {
@@ -22,14 +22,7 @@ class ResetPasswordRequest extends FormRequest
         return [
             'token'    => 'required',
             'email'    => 'required|email',
-            'password' => [
-                'required',
-                'confirmed',
-                PasswordRule::min(8)
-                    ->mixedCase()
-                    ->numbers()
-                    ->symbols(),
-            ],
+            'password' => CommonValidationRules::password(),
         ];
     }
 

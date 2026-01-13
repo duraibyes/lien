@@ -8,7 +8,7 @@ use OwenIt\Auditing\Contracts\Auditable;
 class UserDetails extends Model implements Auditable
 {
     use \OwenIt\Auditing\Auditable;
-    protected $fillable = ['user_id', 'company_id', 'first_name', 'last_name', 'phone', 'address', 'city', 'state_id', 'country', 'zip', 'image', 'office_phone', 'website', 'lien_status', 'created_by'];
+    protected $fillable = ['user_id', 'company', 'company_id', 'first_name', 'last_name', 'phone', 'address', 'city', 'state_id', 'country', 'zip', 'image', 'office_phone', 'website', 'lien_status', 'created_by'];
     /**
      * Relation with Users table
      *

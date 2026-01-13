@@ -5,6 +5,7 @@ namespace App\Services\Auth;
 use Illuminate\Support\Facades\Password;
 
 use App\User;
+use Illuminate\Support\Facades\Hash;
 
 class PasswordResetService
 {
@@ -14,7 +15,7 @@ class PasswordResetService
             $data,
             function (User $user, string $password) {
                 $user->forceFill([
-                    'password' => $password, // hashed in model
+                    'password' => Hash::make($password),
                 ])->save();
 
                 // revoke all tokens (API safety)
