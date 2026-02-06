@@ -16,7 +16,9 @@ class AddCustomFieldToUsersTable extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('custom', 100)->default('1,2,3,4,5,6,7,8,9,10,11');
+            if (!Schema::hasColumn('users', 'custom')) {
+                $table->string('custom', 100)->default('1,2,3,4,5,6,7,8,9,10,11');
+            }
         });
     }
 

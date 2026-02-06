@@ -18,22 +18,24 @@ class CustomerCodeSeeder extends Seeder
 
         $names = [
 
-            'Owner',
+            'Owner' => 'Property owner (direct contract)',
 
-            'General Contractor',
+            'Original Contractor' => 'Prime contractor with direct contract to owner',
 
-            'Sub Contractor',
+            'Subcontractor' => 'Working under general contractor or another subcontractor',
 
-            'Lessor of equipment',
+            // 'Lessor of equipment' => 'Leases equipment to a contractor for use on a project',
 
-            'Sub-Sub Contractor',
+            'Sub-Subcontractor' => 'Subcontractor working under another subcontractor',
+            'Supplier' => 'Provides materials or services to a project',
+            'Equipment Supplier' => 'Provides equipment to a project',
 
         ];
 
-        foreach ($names as $name) {
-            CustomerCode::firstOrCreate(
+        foreach ($names as $name => $description) {
+            CustomerCode::updateOrCreate(
                 ['name' => $name],
-                ['created_at' => $now, 'updated_at' => $now]
+                ['created_at' => $now, 'updated_at' => $now, 'description' => $description]
             );
         }
     }

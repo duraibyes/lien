@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CheckProjectRoleCustomerRequest;
+use App\Http\Resources\Project\CheckProjectRoleCustomerResource;
 use App\Models\JobInfoFiles;
 use App\User;
 use File;
@@ -44,6 +46,7 @@ use App\Models\ClaimFormProjectDataSheet;
 use App\Models\JointPaymentAuthorization;
 use App\Models\ProjectIndustryContactMap;
 use App\Models\UnconditionalWaiverProgress;
+use App\Services\Project\ProjectService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
@@ -52,6 +55,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
  */
 class ProjectController extends Controller
 {
+
+    public function __construct(protected ProjectService $projectService) {}
     public function searchProjectRecord(Request $request)
     {
         $project_id = 388;
@@ -545,8 +550,7 @@ class ProjectController extends Controller
     {
         //forget('key');
         $check = UserDetails::where('user_id', Auth::user()->id)->first();
-
-        if (!$check->state_id) {
+        if (!$check?->state_id) {
             //return redirect()->back()->with('error','Please update your profile.');
             echo "<script>alert('Please update your profile.');window.location.href = 'https://app.lienmanager.com/member';</script>";
 
@@ -646,7 +650,7 @@ class ProjectController extends Controller
 
         if (!$check->state_id) {
             //return redirect()->back()->with('error','Please update your profile.');
-            echo "<script>alert('Please update your profile.');window.location.href = 'https://app.lienmanager.com/member';</script>";
+            echo "<script>alert('Please update your profile.');window.location.href = 'http://localhost:8000/login';</script>";
 
             //return redirect()->back();
         }
@@ -1157,12 +1161,12 @@ class ProjectController extends Controller
             if ($project_id > 0 || $project_id != '') {
                 $project = ProjectDetail::find($project_id);
                 $remedy = Remedy::where('state_id', $project->state_id)
-                ->where('project_type_id', $project->project_type_id);
+                    ->where('project_type_id', $project->project_type_id);
                 $tasks = ProjectTask::where('project_id', $project_id)->get();
-          
-                foreach ($tasks as $key=>$value) {
-                    if(isset($value->job_file_id) && !empty($value->job_file_id)) {
-                        $JobInfoFiles = JobInfoFiles::where('id',$value->job_file_id)->first();
+
+                foreach ($tasks as $key => $value) {
+                    if (isset($value->job_file_id) && !empty($value->job_file_id)) {
+                        $JobInfoFiles = JobInfoFiles::where('id', $value->job_file_id)->first();
                         $tasks[$key]['file_link'] = $JobInfoFiles->file;
                     }
                 }
@@ -1193,7 +1197,7 @@ class ProjectController extends Controller
                 } elseif ($answer == 'No' || $answer == 'Residential') {
                     $flag = 2;
                 }
-                
+
                 if ($flag == 0) {
                     $tier = TierTable::whereIn('role_id', $role_id->pluck('role_id'))->whereIn('customer_id', $role_id->pluck('customer_id'));
                     $tierRem = TierRemedyStep::whereIn('tier_id', $tier->pluck('id'));
@@ -1325,7 +1329,7 @@ class ProjectController extends Controller
             }
             $tierQ = TierTable::where('role_id', $role_id->pluck('role_id'))->where('customer_id', $role_id->pluck('customer_id'));
             $tierQID = $tierQ->pluck('id')->first();
-//            $tierId = TierRemedyStep::where('tier_id', $tierQID)->first();
+            //            $tierId = TierRemedyStep::where('tier_id', $tierQID)->first();
             $state_id = $remedy->pluck('state_id');
             $projectQuestion = RemedyQuestion::whereIn('state_id', $state_id)
                 ->where('tier_id', $tierQID)
@@ -1334,7 +1338,7 @@ class ProjectController extends Controller
             $projectOwner = User::findOrFail($project->user_id);
             $projectOwnerDetails = UserDetails::where('user_id', $project->user_id)->first();
             $projectOwnerDetailsState = null;
-            if(isset($projectOwnerDetails->state_id) && !empty($projectOwnerDetails->state_id)) {
+            if (isset($projectOwnerDetails->state_id) && !empty($projectOwnerDetails->state_id)) {
                 $projectOwnerDetailsState = State::where('id', $projectOwnerDetails->state_id)->first();
             }
 
@@ -1452,26 +1456,20 @@ class ProjectController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
 
-    public function checkProjectRole(Request $request)
+    public function checkProjectRole(CheckProjectRoleCustomerRequest $request)
     {
-        //$remedy = Remedy::all();
-        $remedy = Remedy::where('state_id', $request->state)
-            ->where('project_type_id', $request->project_type);
-        $remdey_date = RemedyDate::whereIn('remedy_id', $remedy->pluck('id'));
-        $remedyStep = RemedyStep::whereIn('remedy_date_id', $remdey_date->pluck('id'));
-        $tier = TierTable::where('role_id', $request->role);
-        $tierRemedyStep = TierRemedyStep::whereIn('remedy_step_id', $remedyStep->pluck('id'))->whereIn('tier_id', $tier->pluck('id'));
-        $customers = TierTable::whereIn('id', $tierRemedyStep->pluck('tier_id'))->with('customer')->get();
-        $state = State::where('id', $request->state)->first();
-        $type = ProjectType::where('id', $request->project_type)->first();
-        $role = ProjectRole::where('id', $request->role)->first();
+        $customers = $this->projectService->checkProjectRoleCustomers($request);
+
         if (count($customers) > 0) {
             return response()->json([
                 'status' => true,
                 'message' => 'Role Found',
-                'data' => $customers
+                'data' => CheckProjectRoleCustomerResource::collection($customers),
             ], 200);
         } else {
+            $state = State::where('id', $request->state_id)->first();
+            $type = ProjectType::where('id', $request->project_type_id)->first();
+            $role = ProjectRole::where('id', $request->role_id)->first();
             return response()->json([
                 'status' => false,
                 'message' => 'No Customer Found for state: ' . $state->name . ' project type: ' . $type->project_type . ' and for the role of ' . $role->project_roles . '.',
@@ -1803,31 +1801,31 @@ class ProjectController extends Controller
 
     public function submitProjectDetails(Request $request)
     {
-        if(!isset($request->project_name) || empty($request->project_name)) {
+        if (!isset($request->project_name) || empty($request->project_name)) {
             return response()->json([
                 'status' => false,
                 'message' => 'The field Project Name cannot be empty!'
             ], 200);
         }
-        if(!isset($request->state) || empty($request->state)) {
+        if (!isset($request->state) || empty($request->state)) {
             return response()->json([
                 'status' => false,
                 'message' => 'The field Location By State cannot be empty!'
             ], 200);
         }
-        if(!isset($request->type) || empty($request->type)) {
+        if (!isset($request->type) || empty($request->type)) {
             return response()->json([
                 'status' => false,
                 'message' => 'The field Project Type cannot be empty!'
             ], 200);
         }
-        if(!isset($request->role) || empty($request->role)) {
+        if (!isset($request->role) || empty($request->role)) {
             return response()->json([
                 'status' => false,
                 'message' => 'The field Role cannot be empty!'
             ], 200);
         }
-        if(!isset($request->customer) || empty($request->customer)) {
+        if (!isset($request->customer) || empty($request->customer)) {
             return response()->json([
                 'status' => false,
                 'message' => 'The field Customer cannot be empty!'
@@ -2450,7 +2448,7 @@ class ProjectController extends Controller
     public function viewProjectTask($id)
     {
         try {
-//            $project_id = request()->get('project_id');
+            //            $project_id = request()->get('project_id');
             $project = ProjectDetail::find($id);
             $liens = '';
             $remedyNames = [];
@@ -2520,9 +2518,9 @@ class ProjectController extends Controller
             $task->comment = $request->comment;
             $task->save();
 
-            if(isset($request->other_comment) && !empty($request->other_comment)) {
+            if (isset($request->other_comment) && !empty($request->other_comment)) {
                 $check = ProjectTaskOther::where('user_id', Auth::id())->where('task_other', $request->other_comment)->first();
-                if(!$check) {
+                if (!$check) {
                     $projectTasksOther = new ProjectTaskOther();
                     $projectTasksOther->task_id = $task->id;
                     $projectTasksOther->user_id = Auth::id();
@@ -2617,7 +2615,7 @@ class ProjectController extends Controller
                     $file->move($filePath, $fileName);
 
                     $JobInfo = JobInfo::where('project_id', $task->project_id)->first();
-                    if(!$JobInfo) {
+                    if (!$JobInfo) {
                         $JobInfo = new JobInfo();
                         $JobInfo->project_id = $task->project_id;
                         $JobInfo->save();
@@ -3097,6 +3095,7 @@ class ProjectController extends Controller
         $flag = 0;
         $project_id = $projectId;
         $project = ProjectDetail::find($project_id);
+       
         $remedy = Remedy::where('state_id', $project->state_id)
             ->where('project_type_id', $project->project_type_id);
         $tiers = TierTable::where('role_id', $project->role_id)
@@ -3110,6 +3109,7 @@ class ProjectController extends Controller
         $remedyDate = RemedyDate::where('status', '1')->whereIn('remedy_id', $remedy->pluck('id'))->whereIn('id', $remedyStepsNew->pluck('remedy_date_id'))->orderBy('date_order', 'ASC')->get();
         $role_id = ProjectDetail::where('id', $project_id);
         $answer = $role_id->first()->answer1;
+        
         if ($answer == 'Yes' || $answer == 'Commercial') {
             $flag = 1;
         } elseif ($answer == 'No' || $answer == 'Residential') {
@@ -3198,7 +3198,7 @@ class ProjectController extends Controller
             $remedyNames[$value->getRemedy->id] = $value->getRemedy->remedy;
         }
 
-//        dd($daysRemain);
+        //        dd($daysRemain);
         $liens = '';
         $remedyNames = [];
         if (isset($_GET['edit'])) {
@@ -3209,6 +3209,7 @@ class ProjectController extends Controller
                 $remedyNames[] = $lien->remedy;
             }
         }
+
         return view('basicUser.projects.viewdeadlines', [
             'project' => $project,
             'selected_project' => $project,
@@ -3550,7 +3551,8 @@ class ProjectController extends Controller
         }
     }
 
-    public function getSlideChart(Request $request) {
+    public function getSlideChart(Request $request)
+    {
         if ($request->header('Authorization') != config('services.EXTERNAL_API_KEY')) {
             return response()->json([
                 'status' => false,

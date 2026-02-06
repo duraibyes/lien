@@ -13,17 +13,19 @@ class CreateProjectDocumentsTable extends Migration
      */
     public function up()
     {
-        Schema::create('project_documents', function (Blueprint $table) {
-            $table->id();
+        if (!Schema::hasTable('user_preferences')) {
+            Schema::create('project_documents', function (Blueprint $table) {
+                $table->id();
 
-            $table->unsignedInteger('project_id');
-            $table->string('title');
-            $table->text('notes');
-            $table->date('date');
-            $table->string('filename');
-            $table->timestamps();
-            $table->softDeletes();
-        });
+                $table->unsignedInteger('project_id');
+                $table->string('title');
+                $table->text('notes');
+                $table->date('date');
+                $table->string('filename');
+                $table->timestamps();
+                $table->softDeletes();
+            });
+        }
     }
 
     /**

@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RemedyController;
@@ -8,7 +7,13 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PasswordController;
 use App\Http\Controllers\Api\RegisterController;
+use App\Http\Controllers\Api\V1\AiFileReaderController;
+use App\Http\Controllers\Api\V1\master\CountryApiController;
+use App\Http\Controllers\Api\V1\master\ProjectRoleApiController;
+use App\Http\Controllers\Api\V1\master\ProjectTypeApiController;
+use App\Http\Controllers\Api\V1\master\StateApiController;
 use App\Http\Controllers\Api\V1\Profile\ProfileController;
+use App\Http\Controllers\Api\V1\Project\DeadlineApiController;
 use App\Http\Controllers\Api\V1\SubUserController;
 
 /*
@@ -42,6 +47,15 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('sub-users/{sub_user}', [SubUserController::class, 'view']);
     Route::apiResource('sub-users', SubUserController::class)
         ->only(['store', 'update', 'destroy']);
+
+    Route::post('ai/read-document', [AiFileReaderController::class, 'readDocument']);
+    Route::get('/countries', [CountryApiController::class, 'getCountries']);
+    Route::post('/states', [StateApiController::class, 'getStates']);
+    Route::get('/project-types', [ProjectTypeApiController::class, 'index']);
+    Route::get('/project-roles', [ProjectRoleApiController::class, 'index']);
+    Route::post('/check-project-roles-customers', [ProjectController::class, 'checkProjectRole']);
+    Route::post('/remedy-dates', [DeadlineApiController::class, 'getRemedyDates']);
+    Route::post('/deadline-info', [DeadlineApiController::class, 'getDeadlineInfo']);
 
     Route::post('logout', [AuthController::class, 'logout'])->name('api.logout');
 });

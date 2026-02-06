@@ -25,19 +25,19 @@ class ProjectRoleSeeder extends Seeder
 
         $names = [
 
-            'Original Contractor',
+            'Original Contractor' => 'Prime/general contractor with direct contract to owner',
 
-            'Subcontractor',
+            'Subcontractor' => 'Working under general contractor or another subcontractor',
 
-            'Supplier',
+            'Supplier' => 'Provides materials or services to a project',
 
-            'Lessor of Equipment',
+            'Lessor of Equipment' => 'Renting or leasing equipment for the project',
         ];
 
-        foreach ($names as $name) {
-            ProjectRole::firstOrCreate(
+        foreach ($names as $name => $description) {
+            ProjectRole::updateOrCreate(
                 ['project_roles' => $name],
-                ['created_at' => $now, 'updated_at' => $now]
+                ['created_at' => $now, 'updated_at' => $now, 'description' => $description]
             );
         }
     }
