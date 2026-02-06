@@ -25,7 +25,9 @@ class DeadlineApiController extends Controller
         $stateId       = $request->state_id;
         $projectTypeId = $request->project_type_id;
         $roleId        = $request->role_id;
-        $customerId    = $request->customer_id;
+        $customerId    = $request->customer_type_id;
+
+
 
         $remedy = Remedy::where('state_id', $stateId)
             ->where('project_type_id', $projectTypeId);
@@ -162,5 +164,4 @@ class DeadlineApiController extends Controller
             'message'         => 'Deadline Info Retrieved Successfully',
         ], 200);
     }
-    
 }
