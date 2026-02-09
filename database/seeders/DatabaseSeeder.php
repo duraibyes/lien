@@ -39,7 +39,7 @@ class DatabaseSeeder extends Seeder
         $this->call(PackageSeeder::class);
         $this->call(TierTableSeeder::class);
         $this->call(ProjectRoleSeeder::class);
-        $this->call(UserSeeder::class);
+        // $this->call(UserSeeder::class);
         $this->call(ProjectTypeSeeder::class);
         $this->call(PropertyTypeSeeder::class);
         $this->call(CountrySeeder::class);

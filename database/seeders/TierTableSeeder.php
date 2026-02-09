@@ -37,10 +37,10 @@ class TierTableSeeder extends Seeder
         foreach ($tiers as $tier) {
             TierTable::firstOrCreate(
                 [
-                    'role_id'          => $tier['role_id'],
-                    'customer_id'      => $tier['customer_id'],
+                    // 'role_id'          => $tier['role_id'],
+                    // 'customer_id'      => $tier['customer_id'],
                     'tier_code'        => $tier['tier_code'],
-                    'tier_coverage_id' => $tier['tier_coverage_id'],
+                    // 'tier_coverage_id' => $tier['tier_coverage_id'],
                 ],
                 [
                     'tier_limit' => $tier['tier_limit'],
